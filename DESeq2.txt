@@ -1,0 +1,92 @@
+# This is a somewhat fragile/frankensteined Rscript that should be read through before
+# using. The base analysis was supplied by a colleague known by my supervisor. I made
+# appropriate modifications where necessary to facilitate an automated pipeline and
+# to include some filtering as well.
+
+#source('http://bioconductor.org/biocLite.R')
+#biocLite('DESeq2')
+
+library('DESeq2')
+setwd("./")
+args = commandArgs(trailingOnly=TRUE)
+sample_one=args[6]
+sample_two=args[7]
+#total_reps=(parseInt(args[3]) + parseInt(args[4]))
+countsTable <- read.csv(args[5],header = TRUE)
+
+rownames(countsTable) <- countsTable[,1]
+countsTable <- countsTable[,-1]
+conds <- factor(c(rep(toString(args[1]),args[3]),rep(toString(args[2]), args[4])))
+ddsFromMatrix <- DESeqDataSetFromMatrix(countsTable, DataFrame(conds), ~ conds)
+colData(ddsFromMatrix)$conds<-factor(colData(ddsFromMatrix)$conds, levels=c(toString(args[2]),toString(args[1])))
+ddsFromMatrix2 <- estimateSizeFactors(ddsFromMatrix)
+normalizedCounts <- counts(ddsFromMatrix2, normalized=TRUE)
+idx <- rowSums(counts(ddsFromMatrix2, normalized=TRUE) >= 50) >= (as.integer(args[3]) + as.integer(args[4]))
+ddsFromMatrix2 <- ddsFromMatrix2[idx,]
+dds<-DESeq(ddsFromMatrix2)
+## added code for low sample count?
+write.table(normalizedCounts, "deseq2-output/normalized_counts.txt", row.names=TRUE)
+
+#res<-results(dds, alpha = 0.05)
+#res<-results(dds, independentFiltering=TRUE, lfcThreshold=1
+res<-results(dds, independentFiltering=TRUE)
+res<-res[order(res$padj),]
+head(res)
+#head(res[ order(res$log2FoldChange),])
+#tail(res[ order(res$log2FoldChange),])
+
+## MA plots
+plotMA(dds,ylim=c(-5,5),alpha = 0.05,main='MAPlot_all')
+dev.copy(svg,'deseq2-output/deseq2_MAplot.svg')
+dev.off()
+
+# Displots
+plotDispEsts(dds)
+
+summary(res, alpha = 0.05)
+sum(res$padj < 0.05, na.rm=TRUE)
+mcols(res,use.names=TRUE)
+rld<- rlogTransformation(dds, blind=TRUE)
+vsd<-varianceStabilizingTransformation(dds, blind=TRUE)
+
+## results as dataframe with p vlues and foldchanges for each gene
+res <- as.data.frame(res)
+res$gene <- rownames(res)
+res <- res[,c(7,1,2,3,4,5,6)]
+write.table(res, "deseq2-output/all.raw.results.txt", row.names=FALSE)
+results_FDR <- res[which(res$padj < 0.05),]
+write.table(results_FDR, "deseq2-output/FDR5.all.results.txt", row.names=FALSE)
+
+#  Identify transcripts and genes with a q value <0.05, clasiddy up and down regualted
+sig.large.up.results <- res[which(res$padj < 0.05 & res$log2FoldChange > 1),]
+write.table(sig.large.up.results, "deseq2-output/FDR5.up.diff.genes.txt", row.names=FALSE)
+
+sig.large.down.results <- res[which(res$padj < 0.05 & res$log2FoldChange < -1),]
+write.table(sig.large.down.results, "deseq2-output/FDR5.down.diff.genes.txt", row.names=FALSE)
+
+## P and Q values distribution
+hist(res$pvalue, main='DESeq2 transcript pvalues', col="grey", xlab='Range of p-values for transcripts ')
+#hist(sig_trans$padj, main='DESeq2 transcript qvalues', col="grey", xlab='Range of q-values for transcripts')
+
+## Dispersion plots
+plotMA(dds,ylim=c(-5,5),main='DESeq2')
+dev.copy(svg,'deseq2-output/deseq2_MAplot.svg')
+dev.off()
+
+## PCA plots
+print(plotPCA(rld, intgroup=c('conds')))
+dev.copy(svg,'deseq2-output/deseq2_pca.svg')
+dev.off()
+
+#DEG wtihout replicates
+rld<- rlogTransformation(dds)
+res <- data.frame(
+  assay(rld), 
+  avgLogExpr = ( assay(rld)[,2] + assay(rld)[,1] ) / 2,
+  rLogFC = assay(rld)[,2] - assay(rld)[,1] )
+all_res <- res[ order(res$rLogFC), ]
+write.table(all_res, "deseq2-output/all.results.txt", row.names=TRUE)
+sig.large.up.results <- res[res$rLogFC > 1,]
+write.table(sig.large.up.results, "deseq2-output/up.diff.genes.txt", row.names=TRUE)
+sig.large.down.results <- res[res$rLogFC < -1,]
+write.table(sig.large.down.results, "deseq2-output/down.diff.genes.txt", row.names=TRUE)
