@@ -113,7 +113,7 @@ outfile.close()
 if "gene_count_matrix.csv" in os.listdir("./"):
 	print("Skipping prepDE.py script. Count matrix already present in current directory.")
 else:
-	call(["/u1/connor/gene-expression/scripts/prepDE.py", "-i", "gtffiles.txt"])
+	call(["prepDE.py", "-i", "gtffiles.txt"])
 
 try:
 	call(["mkdir", "deseq2-output"])
