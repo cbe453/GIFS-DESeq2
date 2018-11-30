@@ -37,7 +37,7 @@ head(res)
 
 ## MA plots
 plotMA(dds,ylim=c(-5,5),alpha = 0.05,main='MAPlot_all')
-dev.copy(svg,'deseq2-output/deseq2_MAplot.svg')
+dev.copy(pdf,'deseq2-output/deseq2_MAplot.pdf')
 dev.off()
 
 # Displots
@@ -70,7 +70,7 @@ hist(res$pvalue, main='DESeq2 transcript pvalues', col="grey", xlab='Range of p-
 
 ## Dispersion plots
 plotMA(dds,ylim=c(-5,5),main='DESeq2')
-dev.copy(svg,'deseq2-output/deseq2_MAplot.svg')
+dev.copy(pdf,'deseq2-output/deseq2_MAplot.pdf')
 dev.off()
 
 ## PCA plots
