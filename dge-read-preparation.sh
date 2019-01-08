@@ -10,8 +10,8 @@ set -e
 GENOTYPE=$1
 THREADS=$2
 READS_DIR=$3
-GENOME=/u1/connor/gene-expression/rainbow-trout/genome-data/rainbow-trout-reference
-GFF=/u1/connor/gene-expression/rainbow-trout/genome-data/GCF_002163495.1_Omyk_1.0_genomic.gff
+GENOME=/u1/cbe453/gene-expression/rainbow-trout/genome-data/rainbow-trout-reference
+GFF=/u1/cbe453/gene-expression/rainbow-trout/genome-data/GCF_002163495.1_Omyk_1.0_genomic.gff
 echo `date`
 
 # check existence of genome and gff files etc.
