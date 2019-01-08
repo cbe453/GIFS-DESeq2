@@ -23,6 +23,13 @@
 # DESeq2 R library installed and in your current path for things to run smoothly.
 #
 ##########################################################################################
+# Genome preparation
+# Prior to running analysis you should have the genome indexed. You should also ahve the 
+# appropriate gff file for the genome of interest. When you have these, you must update 
+# the genome and gff paths in teh dge-read-preparation.sh script to the paths of your 
+# files. The genome must me indexed using the program Hisat2.
+#
+##########################################################################################
 # Usage
 # To run this script, enter the directory that contains the samples_config.tsv, 
 # treatment1.txt and treatment2.txt files and run the command below:
