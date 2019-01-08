@@ -4,7 +4,6 @@
 # Bioinformatics technician
 # Global Institute for Food Security
 # connor.burbridge@gifs.ca
-# last updated: October 2nd, 2018
 #
 ##########################################################################################
 # Setup
@@ -80,7 +79,7 @@ for line in treatment_file:
 	else:
 		print("Preparing reads for genotype: " + split_line[0])
 		call(["mkdir", split_line[0]])
-		call(["/u1/connor/gene-expression/scripts/dge-read-preparation.sh", treatment, threads, reads_dir])
+		call(["/u1/cbe453/gene-expression/scripts/dge-read-preparation.sh", treatment, threads, reads_dir])
 
 treatment_file.close()
 
@@ -121,4 +120,4 @@ except OSError as e:
 	print("Error: %s - %s." % (e.filename, e.strerror))
 
 call(["cd", "deseq2-output"])
-call(["/usr/bin/Rscript", "/u1/connor/gene-expression/scripts/DESeq2.txt", treatment[0], treatment[1], sampleCount1, sampleCount2, "gene_count_matrix.csv"])
+call(["/usr/bin/Rscript", "/u1/cbe453/gene-expression/scripts/DESeq2.txt", treatment[0], treatment[1], sampleCount1, sampleCount2, "gene_count_matrix.csv"])
