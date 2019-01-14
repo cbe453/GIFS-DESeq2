@@ -75,7 +75,7 @@ dev.off()
 
 ## PCA plots
 print(plotPCA(rld, intgroup=c('conds')))
-dev.copy(svg,'deseq2-output/deseq2_pca.svg')
+dev.copy(pdf,'deseq2-output/deseq2_pca.pdf')
 dev.off()
 
 #DEG wtihout replicates
