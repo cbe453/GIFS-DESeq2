@@ -86,7 +86,7 @@ for line in treatment_file:
 	else:
 		print("Preparing reads for genotype: " + split_line[0])
 		call(["mkdir", split_line[0]])
-		call(["dge-read-preparation.sh", treatment, threads, reads_dir])
+		call(["./dge-read-preparation.sh", treatment, threads, reads_dir])
 
 treatment_file.close()
 
@@ -106,7 +106,7 @@ gtffiles = []
 outfile = open("gtffiles.txt", "w")
 
 for treatment in treatment_list:
-	treatment_path = (treatment + "/stringtie-output/")	
+	treatment_path = ("./" + treatment + "/stringtie-output/")	
 	gtffiles = os.listdir(treatment_path)
 	cwd = os.getcwd()
 	i = 0
@@ -119,7 +119,7 @@ outfile.close()
 if "gene_count_matrix.csv" in os.listdir("./"):
 	print("Skipping prepDE.py script. Count matrix already present in current directory.")
 else:
-	call(["prepDE.py", "-i", "gtffiles.txt"])
+	call(["./prepDE.py", "-i", "gtffiles.txt"])
 
 try:
 	call(["mkdir", "deseq2-output"])
@@ -127,4 +127,4 @@ except OSError as e:
 	print("Error: %s - %s." % (e.filename, e.strerror))
 
 call(["cd", "deseq2-output"])
-call(["/usr/bin/Rscript", "DESeq2.txt", treatment[0], treatment[1], sampleCount1, sampleCount2, "gene_count_matrix.csv"])
+call(["/usr/bin/Rscript", "./DESeq2.txt", treatment[0], treatment[1], sampleCount1, sampleCount2, "gene_count_matrix.csv"])
