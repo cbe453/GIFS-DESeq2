@@ -74,7 +74,7 @@ dev.copy(pdf,'deseq2-output/deseq2_MAplot2.pdf')
 dev.off()
 
 ## PCA plots
-print(plotPCA(rld, intgroup=c('conds')))
+print(plotPCA(rld, intgroup=c('conds'), main='DESeq2 PCA'))
 dev.copy(pdf,'deseq2-output/deseq2_pca2.pdf')
 dev.off()
 
