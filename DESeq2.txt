@@ -70,12 +70,12 @@ hist(res$pvalue, main='DESeq2 transcript pvalues', col="grey", xlab='Range of p-
 
 ## Dispersion plots
 plotMA(dds,ylim=c(-5,5),main='DESeq2')
-dev.copy(pdf,'deseq2-output/deseq2_MAplot.pdf')
+dev.copy(pdf,'deseq2-output/deseq2_MAplot2.pdf')
 dev.off()
 
 ## PCA plots
 print(plotPCA(rld, intgroup=c('conds')))
-dev.copy(pdf,'deseq2-output/deseq2_pca.pdf')
+dev.copy(pdf,'deseq2-output/deseq2_pca2.pdf')
 dev.off()
 
 #DEG wtihout replicates
