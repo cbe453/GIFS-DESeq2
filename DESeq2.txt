@@ -12,15 +12,11 @@ args = commandArgs(trailingOnly=TRUE)
 sample_one=args[6]
 sample_two=args[7]
 #total_reps=(parseInt(args[3]) + parseInt(args[4]))
-countsTableOrgn <- read.csv(args[5],header = TRUE)
+countsTable <- read.csv(args[5],header = TRUE)
 
-countsTable <- countsTableOrgn[,-1]
-#rownames(countsTable) <- countsTableOrgn[,1]
-#countsTable <- countsTable[,-1]
-head(countsTable, 20)
+rownames(countsTable) <- countsTable[,1]
+countsTable <- countsTable[,-1]
 conds <- factor(c(rep(toString(args[1]),args[3]),rep(toString(args[2]), args[4])))
-print(conds)
-print(args)
 ddsFromMatrix <- DESeqDataSetFromMatrix(countsTable, DataFrame(conds), ~ conds)
 colData(ddsFromMatrix)$conds<-factor(colData(ddsFromMatrix)$conds, levels=c(toString(args[2]),toString(args[1])))
 ddsFromMatrix2 <- estimateSizeFactors(ddsFromMatrix)
@@ -41,6 +37,8 @@ head(res)
 
 ## MA plots
 plotMA(dds,ylim=c(-5,5),alpha = 0.05,main='MAPlot_all')
+dev.copy(pdf,'deseq2-output/deseq2_MAplot.pdf')
+dev.off()
 
 # Displots
 plotDispEsts(dds)
@@ -72,9 +70,13 @@ hist(res$pvalue, main='DESeq2 transcript pvalues', col="grey", xlab='Range of p-
 
 ## Dispersion plots
 plotMA(dds,ylim=c(-5,5),main='DESeq2')
+dev.copy(pdf,'deseq2-output/deseq2_MAplot2.pdf')
+dev.off()
 
 ## PCA plots
-plotPCA(rld, intgroup=c('conds')) #, main='DESeq2 PCA')
+print(plotPCA(rld, intgroup=c('conds'), main='DESeq2 PCA'))
+dev.copy(pdf,'deseq2-output/deseq2_pca2.pdf')
+dev.off()
 
 #DEG wtihout replicates
 rld<- rlogTransformation(dds)
