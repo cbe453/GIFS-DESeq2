@@ -10,8 +10,8 @@ set -e
 GENOTYPE=$1
 THREADS=$2
 READS_DIR=$3
-GENOME=/u1/cbe453/gene-expression/rainbow-trout/genome-data/rainbow-trout-reference
-GFF=/u1/cbe453/gene-expression/rainbow-trout/genome-data/GCF_002163495.1_Omyk_1.0_genomic.gff
+GENOME=$4
+GFF=$5
 echo `date`
 
 # check existence of genome and gff files etc.
@@ -124,7 +124,7 @@ fi
 	
 cd stringtie-output
 
-# 
+# Produce gtf files for the later called prepDE.py script
 for FILE in ../alignments/*.bam
 do
 	SAMPLE=`basename $FILE | sed -E 's/.bam//g'`
