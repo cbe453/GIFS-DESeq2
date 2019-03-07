@@ -1,7 +1,6 @@
 #!/usr/bin/python
 #
 # Connor Burbridge
-# Bioinformatics technician
 # Global Institute for Food Security
 # connor.burbridge@gifs.ca
 #
@@ -57,74 +56,95 @@
 
 
 from subprocess import call
-import fileinput, re, sys, shutil, os
+import fileinput, re, sys, shutil, os, argparse
 
-# check for the clean option and manage command-line aruguments
-if (sys.argv[1] == "clean"):
-		print("Option clean found. Removing generated directories for each treatment.")
-else:
-	reads_dir = sys.argv[1]
-	threads = sys.argv[2]
-	sampleCount1 = sys.argv[3]
-	sampleCount2 = sys.argv[4]
+def clean():
+        try:
+                print("Flag --clean supplied, removing all output files and directories...")
+                call(["rm", "gtffiles.txt"])
+                call(["rm", "gene_count_matrix.csv"])
+                call(["rm", "transcript_count_matrix.csv"])
+                call(["rm", "-rf", "deseq2-output"])
+       	        call(["rm", "Rplots.pdf"])
+       	except Exception as e:
+                print("Error: %s - %s." % (e.filename, e.strerror))
+        
+        sys.exit(0)
+        
+def dgeReadPrep(args, treatmentFile):
+	# iterate through each treatment supplied in the samples_config.tsv file
+        treatmentList = []
+        for line in treatmentFile:
+                splitLine = line.split()
+                treatment = splitLine[0]
+                treatmentList.append(splitLine[0])
+	        
+                if args.clean == "true":
+                        try:
+                                shutil.rmtree(treatment)
+                                clean()
+                        except Exception as e:
+                                print("Error: %s - %s." % (e.filename, e.strerror))
+                else:
+                        print("Preparing reads for genotype: " + splitLine[0])
+                        call(["mkdir", splitLine[0]])
+                        call(["./dge-read-preparation.sh", treatment, str(args.threads), args.reads])
+                        
+        treatmentFile.close()
+        return treatmentList
+        
 
-# IO mangement
-treatment_file = open("./samples_config.tsv", "r")
-treatment_list = []
+def main(args):
+        # check for the clean option and manage command-line aruguments
+        if (sys.argv[1] == "clean"):
+                print("Option clean found. Removing generated directories for each treatment.")
+        else:
+                reads_dir = args.reads
+                threads = args.threads
+                sampleCount1 = args.countOne
+                sampleCount2 = args.countTwo
+        
+        # IO mangement
+        treatmentFile = open("./samples_config.tsv", "r")
+        treatmentList = []
+        
+        treatmentList = dgeReadPrep(args, treatmentFile)
+        
+        gtffiles = []
+        outfile = open("gtffiles.txt", "w")
+        
+        for treatment in treatmentList:
+                treatmentPath = ("./" + treatment + "/stringtie-output/")	
+                gtffiles = os.listdir(treatmentPath)
+                cwd = os.getcwd()
+                i = 0
+                for gtf in gtffiles:
+                        i += 1
+                        outfile.write(treatment + str(i) + "\t" + cwd + "/" + treatmentPath + gtf + "\n")
 
-# iterate through each treatment supplied in the samples_config.tsv file
-for line in treatment_file:
-	split_line = line.split()
-	treatment = split_line[0]
-	treatment_list.append(split_line[0])
-	
-	if sys.argv[1] == "clean":
-		try:
-			shutil.rmtree(treatment)
-		except OSError as e:
-			print("Error: %s - %s." % (e.filename, e.strerror))
-	else:
-		print("Preparing reads for genotype: " + split_line[0])
-		call(["mkdir", split_line[0]])
-		call(["./dge-read-preparation.sh", treatment, threads, reads_dir])
+        outfile.close()
 
-treatment_file.close()
+        if "gene_count_matrix.csv" in os.listdir("./"):
+                print("Skipping prepDE.py script. Count matrix already present in current directory.")
+        else:
+                call(["./prepDE.py", "-i", "gtffiles.txt"])
+        
+        try:
+                call(["mkdir", "deseq2-output"])
+        except OSError as e:
+                print("Error: %s - %s." % (e.filename, e.strerror))
+        
+        print(treatment)
+        call(["cd", "deseq2-output"])
+        call(["/usr/bin/Rscript", "--vanilla" ,"./DESeq2.txt", treatment_list[0], treatment_list[1], sampleCount1, sampleCount2, "gene_count_matrix.csv"])
+        
 
-if (sys.argv[1] == "clean"):
-	try:
-		call(["rm", "gtffiles.txt"])
-		call(["rm", "gene_count_matrix.csv"])
-		call(["rm", "transcript_count_matrix.csv"])
-		call(["rm", "-rf", "deseq2-output"])
-		call(["rm", "Rplots.pdf"])
-	except OSError as e:
-		print("Error: %s - %s." % (e.filename, e.strerror))
-
-	sys.exit(0)
-
-gtffiles = []
-outfile = open("gtffiles.txt", "w")
-
-for treatment in treatment_list:
-	treatment_path = ("./" + treatment + "/stringtie-output/")	
-	gtffiles = os.listdir(treatment_path)
-	cwd = os.getcwd()
-	i = 0
-	for gtf in gtffiles:
-		i += 1
-		outfile.write(treatment + str(i) + "\t" + cwd + "/" + treatment_path + gtf + "\n")
-
-outfile.close()
-
-if "gene_count_matrix.csv" in os.listdir("./"):
-	print("Skipping prepDE.py script. Count matrix already present in current directory.")
-else:
-	call(["./prepDE.py", "-i", "gtffiles.txt"])
-
-try:
-	call(["mkdir", "deseq2-output"])
-except OSError as e:
-	print("Error: %s - %s." % (e.filename, e.strerror))
-
-call(["cd", "deseq2-output"])
-call(["/usr/bin/Rscript", "./DESeq2.txt", treatment[0], treatment[1], sampleCount1, sampleCount2, "gene_count_matrix.csv"])
+if __name__ == '__main__':
+        parser = argparse.ArgumentParser(description='Main script to use when running differential gene expression pipeline. Make sure to downlaod the latest set of scripts from https://github.com/cbe453/GIFS-DESeq2')
+        parser.add_argument('--reads', type=str, dest='reads', help='full path to to the directory containing the desired read files')
+        parser.add_argument('--threads', type=int, dest='threads', help='number of desired threads for processes that support multi-threaded computation')
+        parser.add_argument('--sample_count_1', type=int, dest='countOne', help='number of replicates for the first treatment in the samples_config.tsv file')
+        parser.add_argument('--sample_count_2', type=int, dest='countTwo', help='number of replicates for the second treatment in the samples_config.tsv file')
+        parser.add_argument('--clean', type=str, dest='clean', help='if the clean flag is true, remove all output directories and files. Acceptable values are true or false', default='false')
+        args = parser.parse_args()
+        sys.exit(main(args))
