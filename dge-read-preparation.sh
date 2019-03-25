@@ -67,7 +67,7 @@ do
 		echo "Trim files found in trim-reads directory for $SAMPLE\..."
 		echo "Skipping $SAMPLE\. Please check that analysis was completed for $SAMPLE"
 	else
-		trimmomatic PE -threads $THREADS $READS_DIR/$SAMPLE\R1.fastq $READS_DIR/$SAMPLE\R2.fastq $SAMPLE\paired_R1.fastq $SAMPLE\unpaired_R1.fastq $SAMPLE\paired_R2.fastq $SAMPLE\unpaired_R2.fastq SLIDINGWINDOW:4:20 LEADING:28 TRAILING:28 MINLEN:90
+		trimmomatic PE -threads $THREADS $READS_DIR/$SAMPLE\R1.fastq $READS_DIR/$SAMPLE\R2.fastq $SAMPLE\paired_R1.fastq $SAMPLE\unpaired_R1.fastq $SAMPLE\paired_R2.fastq $SAMPLE\unpaired_R2.fastq SLIDINGWINDOW:4:25 LEADING:28 TRAILING:28 MINLEN:90
 		fastqc -t $THREADS $SAMPLE\paired_R1.fastq $SAMPLE\paired_R2.fastq
 	fi
 done

@@ -71,7 +71,7 @@ def callR(treatmentList, sampleCount1, sampleCount2):
         if "gene_count_matrix.csv" in os.listdir("./"):
                 print("Skipping prepDE.py script. Count matrix already present in current directory.")
         else:
-                call(["./prepDE.py", "-i", "gtffiles.txt"])
+                call(["prepDE.py", "-i", "gtffiles.txt"])
         
         try:
                 call(["mkdir", "deseq2-output"])
@@ -80,7 +80,7 @@ def callR(treatmentList, sampleCount1, sampleCount2):
 
         try:
                 call(["cd", "deseq2-output"])
-                call(["/usr/bin/Rscript", "--vanilla" ,"./DESeq2.txt", treatmentList[0], treatmentList[1], str(sampleCount1), str(sampleCount2), "gene_count_matrix.csv"])
+                call(["/usr/bin/Rscript", "--vanilla" ,"/u1/cbe453/gene-expression/GIFS-DESeq2/DESeq2.txt", treatmentList[0], treatmentList[1], str(sampleCount1), str(sampleCount2), "gene_count_matrix.csv"])
         except Exception as e:
                 print("Unable to change directory and run DESeq2.txt...")
         sys.exit(0)
@@ -148,7 +148,7 @@ def dgeReadPrep(args, treatmentFile):
                 else:
                         print("Preparing reads for genotype: " + splitLine[0])
                         call(["mkdir", splitLine[0]])
-                        call(["./dge-read-preparation.sh", treatment, str(args.threads), args.reads, args.genome, args.gff])
+                        call(["dge-read-preparation.sh", treatment, str(args.threads), args.reads, args.genome, args.gff])
 
         if (args.clean == 'true'):
                 clean()
@@ -175,7 +175,7 @@ def main(args):
                 sampleCount2 = args.countTwo
         
         # IO mangement
-        treatmentFile = open("./samples_config.tsv", "r")
+        treatmentFile = open("samples_config.tsv", "r")
         treatmentList = []
 
         # Call the dgeReadPrep functino to perform steps up to and including
