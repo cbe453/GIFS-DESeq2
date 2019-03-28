@@ -67,8 +67,19 @@ do
 		echo "Trim files found in trim-reads directory for $SAMPLE\..."
 		echo "Skipping $SAMPLE\. Please check that analysis was completed for $SAMPLE"
 	else
-		trimmomatic PE -threads $THREADS $READS_DIR/$SAMPLE\R1.fastq $READS_DIR/$SAMPLE\R2.fastq $SAMPLE\paired_R1.fastq $SAMPLE\unpaired_R1.fastq $SAMPLE\paired_R2.fastq $SAMPLE\unpaired_R2.fastq SLIDINGWINDOW:4:25 LEADING:28 TRAILING:28 MINLEN:90
-		fastqc -t $THREADS $SAMPLE\paired_R1.fastq $SAMPLE\paired_R2.fastq
+	    trimmomatic PE -threads $THREADS $READS_DIR/$SAMPLE\R1.fastq $READS_DIR/$SAMPLE\R2.fastq \
+			$SAMPLE\paired_R1.fastq $SAMPLE\unpaired_R1.fastq $SAMPLE\paired_R2.fastq \
+			$SAMPLE\unpaired_R2.fastq SLIDINGWINDOW:4:25 LEADING:28 TRAILING:28 MINLEN:90
+
+	    if [[ $? -eq 1 ]]; then
+		exit 1
+	    fi
+
+	    fastqc -t $THREADS $SAMPLE\paired_R1.fastq $SAMPLE\paired_R2.fastq
+
+	    if [[ $? -eq 1 ]]; then
+		exit 1
+	    fi
 	fi
 done
 cd ../
@@ -92,7 +103,12 @@ do
 		echo "Skipping $SAMPLE\. Please check that analysis was completed for $SAMPLE"
 	else
 		echo "Aligning reads to genome for $SAMPLE"
-		hisat2 -p $THREADS --dta -q -x $GENOME -1 ../trim-reads/$SAMPLE\_paired_R1.fastq -2 ../trim-reads/$SAMPLE\_paired_R2.fastq -S $GENOTYPE\_$SAMPLE\.sam
+		hisat2 -p $THREADS --dta -q -x $GENOME -1 ../trim-reads/$SAMPLE\_paired_R1.fastq -2 \
+		       ../trim-reads/$SAMPLE\_paired_R2.fastq -S $GENOTYPE\_$SAMPLE\.sam
+
+		if [[ $? -eq 1 ]]; then
+                    exit 1
+		fi
 	fi
 done
 
@@ -109,6 +125,10 @@ do
 	else
 		echo "Converting alignments to BAM format"
 		samtools view -@ $SAM_THREADS -u $SAMPLE\.sam | samtools sort -@ $SAM_THREADS > $SAMPLE\.bam
+
+		if [[ $? -eq 1 ]]; then
+                    exit 1
+		fi
 	fi
 done
 
@@ -135,6 +155,10 @@ do
 	else
 		echo "Calling StringTie on $SAMPLE for gene/transcript counts"
 		stringtie ../alignments/$SAMPLE\.bam -G $GFF -e -p $THREADS -o $SAMPLE\.gtf
+
+		if [[ $? -eq 1 ]]; then
+                    exit 1
+		fi
 	fi
 done
 
