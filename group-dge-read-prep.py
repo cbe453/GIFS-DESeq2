@@ -80,7 +80,7 @@ def callR(treatmentList, sampleCount1, sampleCount2):
 
         try:
                 call(["cd", "deseq2-output"])
-                call(["/usr/bin/Rscript", "--vanilla" ,"/u1/cbe453/gene-expression/GIFS-DESeq2/DESeq2.txt", treatmentList[0], treatmentList[1], str(sampleCount1), str(sampleCount2), "gene_count_matrix.csv"])
+                check_call(["/usr/bin/Rscript", "--vanilla" ,"/u1/cbe453/gene-expression/GIFS-DESeq2/DESeq2.txt", treatmentList[0], treatmentList[1], str(sampleCount1), str(sampleCount2), "gene_count_matrix.csv", "> deseq2-log.txt"])
         except Exception as e:
                 print("Unable to change directory and run DESeq2.txt...")
         sys.exit(0)
@@ -139,6 +139,7 @@ def dgeReadPrep(args, treatmentFile):
                 splitLine = line.split()
                 treatment = splitLine[0]
                 treatmentList.append(splitLine[0])
+                
 	        
                 if args.clean == "true":
                         try:
@@ -148,7 +149,7 @@ def dgeReadPrep(args, treatmentFile):
                 else:
                         print("Preparing reads for genotype: " + splitLine[0])
                         call(["mkdir", splitLine[0]])
-                        call(["dge-read-preparation.sh", treatment, str(args.threads), args.reads, args.genome, args.gff])
+                        check_call(["dge-read-preparation.sh", treatment, str(args.threads), args.reads, args.genome, args.gff, "> prep-log.txt"])
 
         if (args.clean == 'true'):
                 clean()
