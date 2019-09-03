@@ -13,6 +13,7 @@ sample_one=args[6]
 sample_two=args[7]
 #total_reps=(parseInt(args[3]) + parseInt(args[4]))
 countsTable <- read.csv(args[5],header = TRUE)
+head(countsTable)
 
 rownames(countsTable) <- countsTable[,1]
 countsTable <- countsTable[,-1]

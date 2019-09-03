@@ -6,6 +6,9 @@
 
 set -e
 
+conda init bash
+conda activate bioinformatics
+
 # organizing inputs
 GENOTYPE=$1
 THREADS=$2
@@ -84,6 +87,8 @@ do
 done
 cd ../
 
+conda activate python3.5
+
 # directory management and alignment of reads using HiSAT2
 if [ -d alignments ]
 then
@@ -111,6 +116,8 @@ do
 		fi
 	fi
 done
+
+conda deactivate
 
 declare -i SAM_THREADS
 SAM_THREADS=$THREADS/2

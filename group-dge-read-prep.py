@@ -56,6 +56,8 @@
 
 
 from subprocess import call
+from subprocess import check_call
+from subprocess import run
 import fileinput, re, sys, shutil, os, argparse
 
 ###########################################################################
@@ -79,8 +81,10 @@ def callR(treatmentList, sampleCount1, sampleCount2):
                 print("Error: %s - %s." % (e.filename, e.strerror))
 
         try:
+                dgeLogFile = open("deseq2-log.txt", "w")
                 call(["cd", "deseq2-output"])
-                check_call(["/usr/bin/Rscript", "--vanilla" ,"/u1/cbe453/gene-expression/GIFS-DESeq2/DESeq2.txt", treatmentList[0], treatmentList[1], str(sampleCount1), str(sampleCount2), "gene_count_matrix.csv", "> deseq2-log.txt"])
+                call(["/usr/bin/Rscript", "--vanilla" ,"/u1/cbe453/gene-expression/GIFS-DESeq2/DESeq2.txt", treatmentList[0], treatmentList[1], str(sampleCount1), str(sampleCount2), "./gene_count_matrix.csv"], stdout=dgeLogFile, stderr=dgeLogFile)
+                dgeLogFile.close()
         except Exception as e:
                 print("Unable to change directory and run DESeq2.txt...")
         sys.exit(0)
@@ -101,7 +105,9 @@ def prepGTF(treatmentList, outfile):
                 gtffiles = os.listdir(treatmentPath)
                 cwd = os.getcwd()
                 i = 0
+                print(treatment)
                 for gtf in gtffiles:
+                        print(gtf)
                         i += 1
                         outfile.write(treatment + str(i) + "\t" + cwd + "/" + treatmentPath + gtf + "\n")
 
@@ -139,8 +145,8 @@ def dgeReadPrep(args, treatmentFile):
                 splitLine = line.split()
                 treatment = splitLine[0]
                 treatmentList.append(splitLine[0])
-                
-	        
+                prepLogFile = open("./read-prep-log.txt", "w")
+
                 if args.clean == "true":
                         try:
                                 shutil.rmtree(treatment)
@@ -149,11 +155,12 @@ def dgeReadPrep(args, treatmentFile):
                 else:
                         print("Preparing reads for genotype: " + splitLine[0])
                         call(["mkdir", splitLine[0]])
-                        check_call(["dge-read-preparation.sh", treatment, str(args.threads), args.reads, args.genome, args.gff, "> prep-log.txt"])
+                        check_call(["bash", "-i", "./dge-read-preparation.sh", treatment, str(args.threads), args.reads, args.genome, args.gff], stdout=prepLogFile, stderr=prepLogFile)
 
         if (args.clean == 'true'):
                 clean()
-                
+
+        prepLogFile.close()
         treatmentFile.close()
         return treatmentList
         
@@ -166,6 +173,10 @@ def dgeReadPrep(args, treatmentFile):
 # args: argparse representation of command line arugments
 #############################################################################
 def main(args):
+
+        # initialize conda env
+        call(["conda", "init", "bash"])
+
         # check for the clean option and manage command-line aruguments
         if (args.clean == "true"):
                 print("Option clean found. Removing generated directories for each treatment.")
