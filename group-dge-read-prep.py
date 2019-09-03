@@ -106,7 +106,7 @@ def prepGTF(treatmentList, outfile):
                 cwd = os.getcwd()
                 i = 0
                 print(treatment)
-                for gtf in gtffiles:
+                for gtf in sorted(gtffiles):
                         print(gtf)
                         i += 1
                         outfile.write(treatment + str(i) + "\t" + cwd + "/" + treatmentPath + gtf + "\n")
